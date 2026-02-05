@@ -213,12 +213,6 @@ https://drive.google.com/file/d/1sxRucvn68sS_PPAdoi_TwBxTrCbmyPyT/view?usp=drive
 - Google Maps API: [https://console.cloud.google.com/](https://console.cloud.google.com/)
 - Gemini AI API: [https://console.ai.google.com/](https://console.ai.google.com/)
 
-### Documentation Files
-- `FEATURES_OVERVIEW.md` - Detailed feature descriptions
-- `DEPLOYMENT_CHECKLIST.md` - Production deployment guide
-- `GOOGLE_MAPS_FEATURE_GUIDE.md` - Maps feature documentation
-- `GEMINI_SETUP_COMPLETE.md` - AI setup instructions
-
 ---
 
 ## Code Sample
