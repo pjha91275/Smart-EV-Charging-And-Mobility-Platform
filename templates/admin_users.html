@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Admin - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-users-cog"></i> Manage Users</h1>
+    <a href="/admin/dashboard" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Blacklisted</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u[0] }}</td>
+                <td>{{ u[1] }}</td>
+                <td><small>{{ u[2] }}</small></td>
+                <td>{{ u[3] }}</td>
+                <td>{% if u[4] %}<span class="badge badge-danger">Yes</span>{% else %}<span class="badge badge-success">No</span>{% endif %}</td>
+                <td>
+                    <a href="/admin/user-edit/{{ u[0] }}" class="btn btn-sm btn-primary">Edit</a>
+                    <form action="/admin/user-blacklist/{{ u[0] }}" method="post" style="display:inline-block;">
+                        {% if u[4] %}
+                        <input type="hidden" name="action" value="unblacklist">
+                        <button class="btn btn-sm btn-success" type="submit">Unblacklist</button>
+                        {% else %}
+                        <input type="hidden" name="action" value="blacklist">
+                        <button class="btn btn-sm btn-danger" type="submit">Blacklist</button>
+                        {% endif %}
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

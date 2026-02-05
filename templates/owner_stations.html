@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}My Charging Stations - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-charging-station"></i> My Charging Stations</h1>
+    <a href="/owner/add-station" class="btn btn-primary">
+        <i class="fas fa-plus-circle"></i> Add New Station
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-lightbulb"></i> Manage all your charging stations here. Monitor availability and performance metrics.
+</div>
+
+{% if stations %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th><i class="fas fa-charging-station"></i> Station Name</th>
+                <th><i class="fas fa-map-marker-alt"></i> Location</th>
+                <th><i class="fas fa-plug"></i> Chargers</th>
+                <th><i class="fas fa-money-bill-wave"></i> Price/Unit</th>
+                <th><i class="fas fa-leaf"></i> Green Score</th>
+                <th><i class="fas fa-cogs"></i> Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set total_chargers = 0 %}
+            {% set total_green = 0 %}
+            {% for s in stations %}
+            {% set total_chargers = total_chargers + s[2] %}
+            {% set total_green = total_green + s[4] %}
+            <tr>
+                <td><strong>{{ s[0] }}</strong></td>
+                <td>{{ s[1] }}</td>
+                <td><span class="badge badge-success">{{ s[2] }}</span></td>
+                <td>₹{{ s[3] }}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-leaf" style="color: #2ecc71;"></i>
+                        <span class="ms-2">{{ s[4] }}/10</span>
+                    </div>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-secondary" disabled>
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-large">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="stat-box">
+                <i class="fas fa-charging-station"></i>
+                <h3>{{ stations|length }}</h3>
+                <p>Active Stations</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-box">
+                <i class="fas fa-plug"></i>
+                <h3>{{ total_chargers }}</h3>
+                <p>Total Chargers</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-box">
+                <i class="fas fa-leaf"></i>
+                <h3>{% if stations %}{{ (total_green / stations|length)|round }}{% else %}0{% endif %}</h3>
+                <p>Avg. Green Score</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning">
+    <i class="fas fa-exclamation-circle"></i> You haven't added any stations yet.
+</div>
+
+<a href="/owner/add-station" class="btn btn-primary">
+    <i class="fas fa-plus-circle"></i> Add Your First Station
+</a>
+{% endif %}
+{% endblock %}

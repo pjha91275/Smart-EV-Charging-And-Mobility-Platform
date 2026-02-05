@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Waiting Queue - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-list"></i> Charging Station Waiting Queue</h1>
+    <a href="/admin/dashboard" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-lightbulb"></i> Real-time monitoring of users waiting for charging availability.
+</div>
+
+{% if queue %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th><i class="fas fa-charging-station"></i> Station</th>
+                <th><i class="fas fa-user"></i> User</th>
+                <th><i class="fas fa-clock"></i> Joined At</th>
+                <th><i class="fas fa-hourglass-end"></i> Wait Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for q in queue %}
+            <tr>
+                <td><strong>{{ loop.index }}</strong></td>
+                <td>{{ q[0] }}</td>
+                <td>{{ q[1] }}</td>
+                <td><small>{{ q[2] }}</small></td>
+                <td><span class="badge badge-warning">Waiting</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-success">
+    <i class="fas fa-check-circle"></i> <strong>All clear!</strong> No users in the waiting queue.
+</div>
+{% endif %}
+
+<div class="mt-large">
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-info-circle"></i> Queue Management
+        </div>
+        <div class="card-body">
+            <p><strong>Current Status:</strong> The queue is refreshed in real-time as users initiate or complete charging sessions.</p>
+            <ul class="list-unstyled mt-3">
+                <li><i class="fas fa-circle" style="color: #f39c12; font-size: 0.6rem;"></i> Users waiting are notified automatically when a slot becomes available</li>
+                <li><i class="fas fa-circle" style="color: #f39c12; font-size: 0.6rem;"></i> Maximum wait time is tracked for service quality monitoring</li>
+                <li><i class="fas fa-circle" style="color: #f39c12; font-size: 0.6rem;"></i> Load balancing suggests alternative stations to reduce wait times</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}AI Chat Assistant - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-comments"></i> AI Chat Assistant</h1>
+            <a href="/user/dashboard" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <i class="fas fa-robot"></i> Smart EV Charging Support Bot
+            </div>
+
+            <!-- Chat Messages Display -->
+            <div class="card-body" style="height: 400px; overflow-y: auto; background-color: #f8f9fa;">
+                <div id="chat-messages">
+                    <div class="mb-3">
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-lightbulb"></i> <strong>Welcome!</strong>
+                            <br>I can help you with:
+                            <ul class="mb-0 mt-2">
+                                <li>Station information & availability</li>
+                                <li>Pricing & billing questions</li>
+                                <li>Charging recommendations</li>
+                                <li>Troubleshooting & support</li>
+                                <li>Environmental benefits</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {% if user_message %}
+                    <!-- User Message -->
+                    <div class="mb-3 text-end">
+                        <div class="d-inline-block" style="background: #667eea; color: white; padding: 10px 15px; border-radius: 15px; max-width: 70%;">
+                            <small class="text-muted" style="color: rgba(255,255,255,0.7);">You</small>
+                            <p class="mb-0">{{ user_message }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Bot Response -->
+                    <div class="mb-3 text-start">
+                        <div class="d-inline-block" style="background: #e9ecef; padding: 10px 15px; border-radius: 15px; max-width: 70%;">
+                            <small class="text-muted"><i class="fas fa-robot"></i> Bot</small>
+                            <p class="mb-0" style="white-space: pre-wrap; line-height: 1.5;">{{ bot_response }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Error Display -->
+            {% if error %}
+            <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+                <i class="fas fa-exclamation-circle"></i> {{ error }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endif %}
+
+            <!-- Input Form -->
+            <div class="card-footer" style="background-color: white; border-top: 1px solid #dee2e6;">
+                <form method="POST" class="d-flex gap-2">
+                    <input type="text" 
+                           name="message" 
+                           class="form-control" 
+                           placeholder="Ask me anything about EV charging..."
+                           autocomplete="off"
+                           required>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Example Queries -->
+        <div class="mt-4">
+            <h6 class="text-muted">💡 Try asking:</h6>
+            <div class="d-flex flex-wrap gap-2">
+                <span class="badge bg-light text-dark cursor-pointer" onclick="setQuery('What stations have fast charging?')">
+                    <i class="fas fa-zap"></i> Fast charging
+                </span>
+                <span class="badge bg-light text-dark cursor-pointer" onclick="setQuery('How do I pay for charging?')">
+                    <i class="fas fa-credit-card"></i> Payment
+                </span>
+                <span class="badge bg-light text-dark cursor-pointer" onclick="setQuery('What green stations are near me?')">
+                    <i class="fas fa-leaf"></i> Green stations
+                </span>
+                <span class="badge bg-light text-dark cursor-pointer" onclick="setQuery('Why is my charging not starting?')">
+                    <i class="fas fa-wrench"></i> Troubleshooting
+                </span>
+                <span class="badge bg-light text-dark cursor-pointer" onclick="setQuery('How can I save money on charging?')">
+                    <i class="fas fa-piggy-bank"></i> Save money
+                </span>
+            </div>
+        </div>
+
+        <!-- Chat Features -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6><i class="fas fa-check-circle text-success"></i> What I Can Help With</h6>
+                        <ul class="small list-unstyled">
+                            <li><i class="fas fa-check text-success"></i> Station finder</li>
+                            <li><i class="fas fa-check text-success"></i> Price comparisons</li>
+                            <li><i class="fas fa-check text-success"></i> Technical help</li>
+                            <li><i class="fas fa-check text-success"></i> Eco ratings</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6><i class="fas fa-info-circle text-info"></i> Pro Tips</h6>
+                        <ul class="small list-unstyled">
+                            <li><i class="fas fa-star"></i> Be specific with questions</li>
+                            <li><i class="fas fa-star"></i> Ask about your location</li>
+                            <li><i class="fas fa-star"></i> Get eco recommendations</li>
+                            <li><i class="fas fa-star"></i> Available 24/7</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.cursor-pointer {
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.cursor-pointer:hover {
+    background-color: #667eea !important;
+    color: white !important;
+    transform: translateY(-2px);
+}
+</style>
+
+<script>
+function setQuery(text) {
+    // For future implementation: populate form and submit
+    alert('Query: ' + text);
+}
+</script>
+{% endblock %}

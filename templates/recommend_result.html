@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Recommendation Result - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-lightbulb"></i> Recommended Station</h1>
+            <a href="/user/recommend" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        {% if station %}
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: white;">
+                <i class="fas fa-star"></i> Perfect Match for Your Needs
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h3>{{ station[0] }}</h3>
+                        <p class="text-muted mb-3">
+                            <i class="fas fa-map-marker-alt"></i> {{ station[1] }}
+                        </p>
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Available Chargers</label>
+                            <div style="font-size: 1.5rem; color: #2ecc71; font-weight: 700;">
+                                {{ station[2] }} <i class="fas fa-plug"></i>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Price per kWh</label>
+                            <div style="font-size: 1.5rem; color: #3498db; font-weight: 700;">
+                                ₹{{ station[3] }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="stat-box">
+                            <i class="fas fa-leaf" style="font-size: 2.5rem; color: #2ecc71;"></i>
+                            <h3>{{ station[4] }}/10</h3>
+                            <p>Green Score (Eco-Friendly)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-brain"></i> <strong>AI Analysis</strong>
+                    <div class="mt-2" style="white-space: pre-wrap; line-height: 1.6;">
+                        {{ explanation }}
+                    </div>
+                </div>
+
+                <a href="/user/charge/{{ station[0] }}?price={{ station[3] }}" class="btn btn-primary w-100 py-3">
+                    <i class="fas fa-plug"></i> Start Charging Here
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <div style="font-size: 3rem; color: #f39c12; margin-bottom: 20px;">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>No Suitable Station Found</h3>
+                <p class="text-muted mt-3">
+                    We couldn't find a nearby charging station that matches your requirements.
+                    Try adjusting your parameters or check nearby stations manually.
+                </p>
+                <a href="/user/stations" class="btn btn-primary mt-3">
+                    <i class="fas fa-list"></i> View All Stations
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="mt-4">
+            <a href="/user/dashboard" class="btn btn-outline-secondary">
+                <i class="fas fa-home"></i> Back to Dashboard
+            </a>
+            <a href="/user/recommend" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-redo"></i> Try Again
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

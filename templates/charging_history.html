@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Charging History - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-history"></i> Charging History</h1>
+    <a href="/user/dashboard" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-lightbulb"></i> View all your charging sessions. Stop active sessions or view completed sessions.
+</div>
+
+{% if history %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th><i class="fas fa-charging-station"></i> Station</th>
+                <th><i class="fas fa-battery-full"></i> Units (kWh)</th>
+                <th><i class="fas fa-money-bill-wave"></i> Amount (₹)</th>
+                <th><i class="fas fa-clock"></i> Started At</th>
+                <th><i class="fas fa-check-circle"></i> Status</th>
+                <th><i class="fas fa-cogs"></i> Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set total_units = 0 %}
+            {% set total_amount = 0 %}
+            {% for h in history %}
+            {# Sum units and amount for Active and Completed sessions (exclude Cancelled) #}
+            {% if h[5] != 'Cancelled' and h[2] is not none and h[3] is not none %}
+                {% set total_units = total_units + h[2] %}
+                {% set total_amount = total_amount + h[3] %}
+            {% endif %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td><strong>{{ h[1] }}</strong></td>
+                <td>{{ h[2] }}</td>
+                <td>₹{{ h[3] }}</td>
+                <td>
+                    <small>{{ h[6][:19] if h[6] else 'N/A' }}</small>
+                </td>
+                <td>
+                    {% if h[5] == "Completed" %}
+                        <span class="badge" style="background-color: #2ecc71;">Completed</span>
+                    {% elif h[5] == "Active" %}
+                        <span class="badge" style="background-color: #f39c12;">Active</span>
+                    {% elif h[5] == "Cancelled" %}
+                        <span class="badge" style="background-color: #95a5a6;">Cancelled</span>
+                    {% else %}
+                        <span class="badge badge-warning">{{ h[5] }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if h[5] == "Active" %}
+                        <button class="btn btn-sm btn-danger stop-btn" data-session-id="{{ h[0] }}">
+                            <i class="fas fa-stop-circle"></i> Stop
+                        </button>
+                    {% else %}
+                        <button class="btn btn-sm btn-secondary" disabled>
+                            <i class="fas fa-check"></i> {{ h[5] }}
+                        </button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-large">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="stat-box">
+                <i class="fas fa-plug"></i>
+                <h3>{{ history|length }}</h3>
+                <p>Total Sessions</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-box">
+                <i class="fas fa-battery-full"></i>
+                <h3>{{ total_units }}</h3>
+                <p>Total kWh Charged</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-box">
+                <i class="fas fa-money-bill-wave"></i>
+                <h3>₹{{ total_amount }}</h3>
+                <p>Total Spent</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning">
+    <i class="fas fa-exclamation-circle"></i> No charging sessions yet. Start charging to build your history!
+</div>
+
+<a href="/user/stations" class="btn btn-primary">
+    <i class="fas fa-plug"></i> Find a Station
+</a>
+{% endif %}
+
+<script>
+    function stopCharging(sessionId) {
+        if (confirm('Are you sure you want to stop this charging session?')) {
+            fetch(`/user/stop-charging/${sessionId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Charging stopped successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error stopping charging');
+            });
+        }
+    }
+</script>
+    <script>
+        // Attach handlers to buttons generated without inline onclick
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.stop-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const sessionId = this.dataset.sessionId;
+                    if (confirm('Are you sure you want to stop this charging session?')) {
+                        fetch(`/user/stop-charging/${sessionId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                alert('Charging stopped successfully!');
+                                location.reload();
+                            } else {
+                                alert('Error: ' + (data.error || data.message || 'Unknown'));
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert('Error stopping charging');
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
+

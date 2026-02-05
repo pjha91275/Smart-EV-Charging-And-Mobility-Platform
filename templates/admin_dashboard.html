@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-cogs"></i> Admin Dashboard</h1>
+    <a href="/admin/logout" class="btn btn-outline-danger">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+</div>
+
+<h3 class="mb-4"><i class="fas fa-chart-line"></i> Platform Overview</h3>
+
+<div class="row g-4 mb-large">
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-box">
+            <i class="fas fa-users" style="font-size: 2rem; color: #3498db;"></i>
+            <h3>{{ total_users|default(0) }}</h3>
+            <p>Total Users</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-box">
+            <i class="fas fa-charging-station" style="font-size: 2rem; color: #2ecc71;"></i>
+            <h3>{{ total_stations|default(0) }}</h3>
+            <p>Charging Stations</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-box">
+            <i class="fas fa-plug" style="font-size: 2rem; color: #f39c12;"></i>
+            <h3>{{ total_sessions|default(0) }}</h3>
+            <p>Charging Sessions</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-box">
+            <i class="fas fa-indian-rupee-sign" style="font-size: 2rem; color: #e74c3c;"></i>
+            <h3>₹{{ total_revenue|default(0) }}</h3>
+            <p>Total Revenue</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-large">
+    <div class="col-md-6 mb-4">
+        <a href="/admin/stations" class="text-decoration-none">
+            <div class="card h-100" style="cursor: pointer;">
+                <div class="card-header">
+                    <i class="fas fa-check-circle"></i> Approve Stations
+                </div>
+                <div class="card-body">
+                    <p>Review and approve new charging station submissions from owners.</p>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-arrow-right"></i> Manage Stations
+                    </button>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <a href="/admin/queue" class="text-decoration-none">
+            <div class="card h-100" style="cursor: pointer;">
+                <div class="card-header">
+                    <i class="fas fa-list"></i> Waiting Queue
+                </div>
+                <div class="card-body">
+                    <p>Monitor users waiting for charging availability at stations.</p>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-arrow-right"></i> View Queue
+                    </button>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<h3 class="mb-4"><i class="fas fa-history"></i> Recent Charging Sessions</h3>
+
+{% if sessions %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th><i class="fas fa-charging-station"></i> Station</th>
+                <th><i class="fas fa-battery-full"></i> Units (kWh)</th>
+                <th><i class="fas fa-money-bill-wave"></i> Amount (₹)</th>
+                <th><i class="fas fa-link"></i> Transaction Hash</th>
+                <th><i class="fas fa-check-circle"></i> Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in sessions %}
+            <tr>
+                <td><strong>{{ s[0]|default('N/A') }}</strong></td>
+                <td>{{ s[1]|default('N/A') }}</td>
+                <td>₹{{ s[2]|default('N/A') }}</td>
+                <td><code style="font-size: 0.8rem;">{{ (s[3]|default('N/A')|string)[:16] }}...</code></td>
+                <td>
+                    {% if s[4]|default('pending') == "completed" %}
+                        <span class="badge badge-success">Completed</span>
+                    {% elif s[4]|default('pending') == "pending" %}
+                        <span class="badge badge-warning">Pending</span>
+                    {% else %}
+                        <span class="badge" style="background-color: #95a5a6;">{{ s[4]|default('N/A') }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> No charging sessions yet.
+</div>
+{% endif %}
+{% endblock %}

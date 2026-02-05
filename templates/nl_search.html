@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Smart Search - Find Charging Stations{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="fas fa-search"></i> Smart Station Search</h1>
+        <p class="text-muted">Just describe what you're looking for and we'll find the perfect station</p>
+    </div>
+    <div class="col text-end">
+        <a href="/user/dashboard" class="btn btn-outline-secondary">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Search Form -->
+<div class="row mb-4">
+    <div class="col-md-10 offset-md-1">
+        <div class="card">
+            <div class="card-body p-4">
+                <form method="POST" class="mb-3">
+                    <div class="input-group input-group-lg">
+                        <input type="text" 
+                               name="query" 
+                               class="form-control" 
+                               placeholder='e.g., "Green station with fast charging within 10km" or "Cheapest station near me"'
+                               value="{{ query or '' }}"
+                               required>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </form>
+
+                <div class="alert alert-info small">
+                    <i class="fas fa-lightbulb"></i> <strong>Tip:</strong> Describe exactly what you need - mention eco-friendly, price, speed, distance, availability, or any combination!
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Display -->
+{% if error %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-circle"></i> {{ error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- Search Results -->
+{% if results is not none %}
+<div class="row mb-4">
+    <div class="col-md-10 offset-md-1">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0"><i class="fas fa-filter"></i> Search Results</h5>
+                        <small class="text-muted">{{ explanation }}</small>
+                    </div>
+                    <span class="badge bg-primary" style="font-size: 1rem;">{{ results|length }} found</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if results %}
+                <div class="row">
+                    {% for station in results %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ station[0] }}</h5>
+                                <p class="text-muted small mb-2">
+                                    <i class="fas fa-map-marker-alt"></i> {{ station[1] }}
+                                </p>
+                                
+                                <div class="row text-center mb-3">
+                                    <div class="col">
+                                        <small class="text-muted">Chargers</small>
+                                        <h6 class="mb-0"><i class="fas fa-plug text-primary"></i> {{ station[2] }}</h6>
+                                    </div>
+                                    <div class="col">
+                                        <small class="text-muted">Price/kWh</small>
+                                        <h6 class="mb-0 text-info">₹{{ station[3] }}</h6>
+                                    </div>
+                                    <div class="col">
+                                        <small class="text-muted">Green Score</small>
+                                        <h6 class="mb-0"><i class="fas fa-leaf text-success"></i> {{ station[4] }}/10</h6>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <a href="/user/charge/{{ station[0] }}?price={{ station[3] }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-plug"></i> Start Charging
+                                    </a>
+                                    <a href="/user/station-analytics/{{ station[0] }}" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-chart-line"></i> View Analytics
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-warning text-center py-4">
+                    <div style="font-size: 2.5rem; margin-bottom: 15px;">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h5>No stations found</h5>
+                    <p class="text-muted mb-0">Try adjusting your search criteria or checking nearby locations.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Example Searches -->
+<div class="row mb-4">
+    <div class="col-md-10 offset-md-1">
+        <h6 class="mb-3"><i class="fas fa-compass"></i> Popular Searches</h6>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card border-0 bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title">🌱 Eco-Conscious</h6>
+                        <p class="small text-muted">"Green station with high eco score near me"</p>
+                        <form method="POST" style="display:inline;">
+                            <input type="hidden" name="query" value="Green station with high eco score">
+                            <button type="submit" class="btn btn-sm btn-outline-primary w-100">Try It</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title">💰 Budget Friendly</h6>
+                        <p class="small text-muted">"Cheapest charging within 5km"</p>
+                        <form method="POST" style="display:inline;">
+                            <input type="hidden" name="query" value="Cheapest charging within 5km">
+                            <button type="submit" class="btn btn-sm btn-outline-primary w-100">Try It</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title">⚡ Speed Demon</h6>
+                        <p class="small text-muted">"Fast charging with multiple chargers"</p>
+                        <form method="POST" style="display:inline;">
+                            <input type="hidden" name="query" value="Fast charging with multiple chargers">
+                            <button type="submit" class="btn btn-sm btn-outline-primary w-100">Try It</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Tips -->
+<div class="row">
+    <div class="col-md-10 offset-md-1">
+        <div class="card bg-light border-0">
+            <div class="card-body">
+                <h6 class="card-title"><i class="fas fa-star"></i> Search Tips</h6>
+                <ul class="small mb-0">
+                    <li><strong>Location:</strong> "near me", "within 10km", "in downtown"</li>
+                    <li><strong>Price:</strong> "under 10 rupees", "cheap", "affordable"</li>
+                    <li><strong>Speed:</strong> "fast charging", "quick", "rapid"</li>
+                    <li><strong>Eco:</strong> "green", "eco-friendly", "renewable"</li>
+                    <li><strong>Availability:</strong> "multiple chargers", "4+ chargers"</li>
+                    <li><strong>Combination:</strong> "Green station with fast charging within 10km"</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card-title {
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.btn-outline-primary {
+    color: #667eea;
+    border-color: #667eea;
+}
+
+.btn-outline-primary:hover {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Station Analytics - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="fas fa-chart-bar"></i> {{ station_name }} - Analytics</h1>
+        <p class="text-muted">Detailed performance metrics and predictions</p>
+    </div>
+    <div class="col text-end">
+        <a href="/user/stations" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+{% if analytics %}
+
+<!-- Efficiency Metrics -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-zap"></i> Station Efficiency
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                            <small class="text-muted">Avg Charging Time</small>
+                            <h4 class="mb-0">{% if analytics.efficiency.avg_charging_time_minutes != 'N/A' %}{{ analytics.efficiency.avg_charging_time_minutes }} min{% else %}N/A{% endif %}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                            <small class="text-muted">Available Chargers</small>
+                            <h4 class="mb-0"><i class="fas fa-plug text-primary"></i> {{ analytics.efficiency.available_chargers }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                            <small class="text-muted">Green Score</small>
+                            <h4 class="mb-0"><i class="fas fa-leaf text-success"></i> {{ analytics.efficiency.green_score }}/10</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div style="padding: 20px; background: #667eea; color: white; border-radius: 8px;">
+                            <small>Efficiency Rating</small>
+                            <h4 class="mb-0">{{ analytics.efficiency.efficiency_rating }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="fas fa-lightbulb"></i> {{ analytics.efficiency.recommendation }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Peak Hours Analysis -->
+{% if analytics.peak_hours %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-clock"></i> Peak Usage Hours
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for hour_data in analytics.peak_hours %}
+                    <div class="col-md-3 mb-2">
+                        <div class="d-flex align-items-center">
+                            <div style="width: 50px;">
+                                <small class="text-muted">{{ hour_data.hour }}</small>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="progress" style="height: 8px;">
+                                    {% if hour_data.is_peak %}
+                                    <div class="progress-bar bg-warning" style="width: {{ hour_data.intensity * 10 }}%"></div>
+                                    {% else %}
+                                    <div class="progress-bar bg-info" style="width: {{ hour_data.intensity * 10 }}%"></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <small class="text-muted ms-2">{{ hour_data.count }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="alert alert-info mt-3 mb-0">
+                    <small><i class="fas fa-info-circle"></i> Peak hours show highest demand. Charge during low-demand times to avoid queues!</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Usage Pattern
+            </div>
+            <div class="card-body small">
+                {% set peak_count = analytics.peak_hours | selectattr('is_peak') | list | length %}
+                <p><strong>{{ peak_count }}/24</strong> peak hours identified</p>
+                <div class="d-flex align-items-center mb-2">
+                    <div class="badge bg-warning" style="width: 15px; height: 15px;"></div>
+                    <small class="ms-2">Peak usage</small>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="badge bg-info" style="width: 15px; height: 15px;"></div>
+                    <small class="ms-2">Normal usage</small>
+                </div>
+                <hr>
+                <p class="mb-0 text-muted"><i class="fas fa-star"></i> Best time to charge: Find off-peak hours above!</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Demand Forecast -->
+{% if analytics.demand_forecast %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-calendar"></i> 7-Day Demand Forecast
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for forecast in analytics.demand_forecast %}
+                    <div class="col-md-1_71" style="flex: 0 0 14.28%;">
+                        <div class="text-center">
+                            <small class="text-muted">{{ forecast.day[:3] }}</small>
+                            <h6 class="mb-2">{{ forecast.date.split('-')[2] }}</h6>
+                            <div class="progress" style="height: 30px; border-radius: 4px;" title="{{ forecast.expected_sessions }} sessions">
+                                {% if forecast.confidence == 'high' %}
+                                <div class="progress-bar bg-danger" style="width: 100%; "></div>
+                                {% elif forecast.confidence == 'medium' %}
+                                <div class="progress-bar bg-warning" style="width: 100%; "></div>
+                                {% else %}
+                                <div class="progress-bar bg-success" style="width: 100%; "></div>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted mt-2 d-block">{{ forecast.expected_sessions }}</small>
+                            <small class="badge bg-light text-dark">{{ forecast.confidence }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Price Trend -->
+{% if analytics.price_trend %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-rupee-sign"></i> Price Analysis
+            </div>
+            <div class="card-body">
+                <div class="row text-center mb-3">
+                    <div class="col">
+                        <small class="text-muted">Current Price</small>
+                        <h4 class="text-primary mb-0">₹{{ analytics.price_trend.current_price }}/kWh</h4>
+                    </div>
+                    <div class="col">
+                        <small class="text-muted">30-Day Avg</small>
+                        <h4 class="text-info mb-0">₹{{ analytics.price_trend.historical_avg }}/kWh</h4>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted">Trend</small>
+                    <div class="d-flex align-items-center gap-2">
+                        <h5 class="mb-0">
+                            {% if analytics.price_trend.trend == 'increasing' %}
+                            <i class="fas fa-arrow-up text-danger"></i> Increasing
+                            {% elif analytics.price_trend.trend == 'decreasing' %}
+                            <i class="fas fa-arrow-down text-success"></i> Decreasing
+                            {% else %}
+                            <i class="fas fa-minus text-warning"></i> Stable
+                            {% endif %}
+                        </h5>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mb-0">
+                    <small><i class="fas fa-lightbulb"></i> {{ analytics.price_trend.recommendation }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-bar-chart"></i> Recent Activity
+            </div>
+            <div class="card-body">
+                <div style="text-align: center; padding: 20px;">
+                    <h6>{{ analytics.efficiency.total_sessions_30d }}</h6>
+                    <small class="text-muted">Charging Sessions (30 days)</small>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <small class="text-muted">Average Usage</small>
+                    <h6>{{ (analytics.efficiency.total_sessions_30d / 30)|int }} sessions/day</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Action Buttons -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="/user/charge/{{ station_name }}" class="btn btn-primary">
+                <i class="fas fa-plug"></i> Start Charging Here
+            </a>
+            <a href="/user/nl-search" class="btn btn-outline-secondary">
+                <i class="fas fa-search"></i> Find Similar Stations
+            </a>
+            <a href="/user/stations" class="btn btn-outline-secondary">
+                <i class="fas fa-list"></i> All Stations
+            </a>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="alert alert-warning">
+    <i class="fas fa-exclamation-triangle"></i> Unable to load analytics. Please try again later.
+</div>
+{% endif %}
+
+<style>
+.col-md-1_71 {
+    flex: 0 0 14.28%;
+}
+
+@media (max-width: 768px) {
+    .col-md-1_71 {
+        flex: 0 0 50%;
+    }
+}
+</style>
+{% endblock %}

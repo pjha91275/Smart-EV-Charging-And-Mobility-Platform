@@ -1,0 +1,79 @@
+
+{% extends "base.html" %}
+
+{% block title %}Find Charging Stations - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-map-pin"></i> Available Charging Stations</h1>
+    <a href="/user/dashboard" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-lightbulb"></i> Select a station to initiate charging. Prices are per kWh. Green score indicates the station's environmental efficiency.
+</div>
+
+{% if stations %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th><i class="fas fa-charging-station"></i> Station Name</th>
+                <th><i class="fas fa-map-marker-alt"></i> Location</th>
+                <th><i class="fas fa-plug"></i> Available Chargers</th>
+                <th><i class="fas fa-money-bill-wave"></i> Price (₹/kWh)</th>
+                <th><i class="fas fa-leaf"></i> Green Score</th>
+                <th><i class="fas fa-cogs"></i> Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in stations %}
+            <tr>
+                <td><strong>{{ s[1] }}</strong></td>
+                <td>{{ s[2] }}</td>
+                <td>
+                    <span class="badge {% if s[3] > 0 %}badge-approved{% else %}badge-rejected{% endif %}">
+                        {{ s[3] }} chargers
+                    </span>
+                </td>
+                <td><strong>₹{{ s[4] }}</strong></td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-leaf" style="color: #2ecc71;"></i>
+                        <span class="ms-2">{{ s[5] }}/10</span>
+                    </div>
+                </td>
+                <td>
+                    <a href="/user/charge/{{ s[1] }}?price={{ s[4] }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plug"></i> Start Charging
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-warning">
+    <i class="fas fa-exclamation-circle"></i> No charging stations available at the moment.
+</div>
+{% endif %}
+
+<div class="mt-large">
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-info-circle"></i> Tips for Choosing a Station
+        </div>
+        <div class="card-body">
+            <ul class="list-unstyled">
+                <li class="mb-2"><i class="fas fa-check-circle" style="color: #2ecc71;"></i> <strong>Green Score:</strong> Higher scores mean the station uses renewable energy</li>
+                <li class="mb-2"><i class="fas fa-check-circle" style="color: #2ecc71;"></i> <strong>Available Chargers:</strong> Choose stations with multiple chargers for faster access</li>
+                <li class="mb-2"><i class="fas fa-check-circle" style="color: #2ecc71;"></i> <strong>Pricing:</strong> Compare prices across stations to find the best deal</li>
+                <li class="mb-2"><i class="fas fa-check-circle" style="color: #2ecc71;"></i> <strong>Location:</strong> Pick stations convenient to your route</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

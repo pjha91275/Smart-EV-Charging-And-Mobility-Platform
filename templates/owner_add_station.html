@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Add Charging Station - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header text-center">
+                <i class="fas fa-plus-circle"></i> Add New Charging Station
+            </div>
+            <div class="card-body">
+                {% if error %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                {% if success %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle"></i> Station added successfully! It's pending admin approval.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">
+                            <i class="fas fa-charging-station"></i> Station Name
+                        </label>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="e.g., Downtown Charging Hub" required autofocus>
+                        <small class="form-text text-muted d-block mt-2">Give your station a memorable name</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="location" class="form-label">
+                            <i class="fas fa-map-marker-alt"></i> Location
+                        </label>
+                        <input type="text" class="form-control" id="location" name="location" placeholder="e.g., Main Street, City Center" required>
+                        <small class="form-text text-muted d-block mt-2">Full address or area name</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="chargers" class="form-label">
+                            <i class="fas fa-plug"></i> Number of Chargers
+                        </label>
+                        <input type="number" class="form-control" id="chargers" name="chargers" placeholder="e.g., 10" min="1" required>
+                        <small class="form-text text-muted d-block mt-2">Total number of charging points</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="price" class="form-label">
+                            <i class="fas fa-money-bill-wave"></i> Price per Unit (₹/kWh)
+                        </label>
+                        <input type="number" class="form-control" id="price" name="price" placeholder="e.g., 12.50" step="0.01" min="0.01" required>
+                        <small class="form-text text-muted d-block mt-2">Competitive pricing helps attract users</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="green_score" class="form-label">
+                            <i class="fas fa-leaf"></i> Green Score (1-10)
+                        </label>
+                        <input type="number" class="form-control" id="green_score" name="green_score" placeholder="e.g., 8" min="1" max="10" required>
+                        <small class="form-text text-muted d-block mt-2">
+                            Eco-friendliness: 10 = 100% renewable energy, 1 = fossil fuels
+                        </small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3">
+                        <i class="fas fa-check-circle"></i> Add Station
+                    </button>
+                </form>
+
+                <hr>
+
+                <a href="/owner/stations" class="btn btn-secondary w-100">
+                    <i class="fas fa-arrow-left"></i> View My Stations
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> What Happens Next?
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li class="mb-2"><strong>Submit:</strong> Fill in all station details above</li>
+                    <li class="mb-2"><strong>Review:</strong> Admin will review your submission (24-48 hours)</li>
+                    <li class="mb-2"><strong>Approval:</strong> Once approved, your station goes live</li>
+                    <li class="mb-2"><strong>Earn:</strong> Start earning as users charge at your station</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

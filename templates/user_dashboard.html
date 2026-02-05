@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}User Dashboard - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-tachometer-alt"></i> EV User Dashboard</h1>
+</div>
+
+<div class="alert alert-info alert-dismissible fade show">
+    <i class="fas fa-lightbulb"></i> <strong>Welcome!</strong> Find charging stations, track your sessions, and get AI-powered recommendations.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<div class="dashboard-menu">
+    <a href="/user/stations" class="menu-item">
+        <i class="fas fa-map-pin"></i>
+        <h5>Find Stations</h5>
+        <p>Locate nearby charging stations with real-time availability</p>
+    </a>
+
+    <a href="/user/map-search" class="menu-item">
+        <i class="fas fa-map"></i>
+        <h5>Google Maps Search</h5>
+        <p>Browse stations on an interactive map and book directly</p>
+    </a>
+
+    <a href="/user/nl-search" class="menu-item">
+        <i class="fas fa-search"></i>
+        <h5>Smart Search</h5>
+        <p>Find stations using natural language - just describe what you need</p>
+    </a>
+
+    <a href="/user/recommend" class="menu-item">
+        <i class="fas fa-brain"></i>
+        <h5>AI Recommendations</h5>
+        <p>Get intelligent charging suggestions based on your patterns</p>
+    </a>
+
+    <a href="/user/chat" class="menu-item">
+        <i class="fas fa-comments"></i>
+        <h5>AI Chat Assistant</h5>
+        <p>Ask questions about charging, pricing, and more 24/7</p>
+    </a>
+
+    <a href="/user/insights" class="menu-item">
+        <i class="fas fa-chart-line"></i>
+        <h5>Your Insights</h5>
+        <p>View personalized analytics, spending trends, and eco-impact</p>
+    </a>
+
+    <a href="/user/history" class="menu-item">
+        <i class="fas fa-history"></i>
+        <h5>Charging History</h5>
+        <p>View your past charging sessions and analytics</p>
+    </a>
+</div>
+
+<div class="row mt-large">
+    <div class="col-md-4">
+        <div class="stat-box">
+            <i class="fas fa-plug"></i>
+            <h3 id="sessions-count">{{ total_sessions if total_sessions is defined else 0 }}</h3>
+            <p>Total Sessions</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-box">
+            <i class="fas fa-battery-full"></i>
+            <h3 id="units-count">{{ "%.1f"|format(total_units) if total_units is defined else 0 }}</h3>
+            <p>Units Charged (kWh)</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-box">
+            <i class="fas fa-leaf"></i>
+            <h3 id="green-score">{{ "%.1f"|format(avg_green_score) if avg_green_score is defined else 0 }}/10</h3>
+            <p>Avg Green Score</p>
+        </div>
+    </div>
+</div>
+
+<div class="mt-large">
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-question-circle"></i> Quick Tips
+        </div>
+        <div class="card-body">
+            <ul class="list-unstyled">
+                <li class="mb-2"><span class="badge badge-success"><i class="fas fa-check"></i></span> Use our AI recommendations to find the best charging times and prices</li>
+                <li class="mb-2"><span class="badge badge-success"><i class="fas fa-check"></i></span> Check the green score to choose eco-friendly stations</li>
+                <li class="mb-2"><span class="badge badge-success"><i class="fas fa-check"></i></span> Track your charging history for better planning</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

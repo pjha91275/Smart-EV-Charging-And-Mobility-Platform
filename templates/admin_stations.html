@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Approve Stations - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-check-circle"></i> Charging Station Approval</h1>
+    <a href="/admin/dashboard" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-lightbulb"></i> Review and approve new charging stations from owners to add them to the platform.
+</div>
+
+{% if stations %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th><i class="fas fa-charging-station"></i> Station Name</th>
+                <th><i class="fas fa-map-marker-alt"></i> Location</th>
+                <th><i class="fas fa-plug"></i> Chargers</th>
+                <th><i class="fas fa-money-bill-wave"></i> Price/Unit</th>
+                <th><i class="fas fa-leaf"></i> Green Score</th>
+                <th><i class="fas fa-info-circle"></i> Status</th>
+                <th><i class="fas fa-cogs"></i> Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in stations %}
+            <tr>
+                <td><strong>{{ s[1] }}</strong></td>
+                <td>{{ s[2] }}</td>
+                <td><span class="badge badge-success">{{ s[3] }}</span></td>
+                <td>₹{{ s[4] }}</td>
+                <td>{{ s[5] }}/10</td>
+                <td>
+                    {% if s[6] == 1 %}
+                        <span class="badge" style="background-color: #2ecc71;">Approved</span>
+                    {% else %}
+                        <span class="badge badge-warning">Pending Review</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if s[6] == 0 %}
+                        <a href="/admin/approve-station/{{ s[0] }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-check"></i> Approve
+                        </a>
+                    {% else %}
+                        <button class="btn btn-sm btn-secondary" disabled>
+                            <i class="fas fa-check-double"></i> Approved
+                        </button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-success">
+    <i class="fas fa-check-circle"></i> <strong>All caught up!</strong> No pending station approvals.
+</div>
+{% endif %}
+{% endblock %}

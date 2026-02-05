@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}AI Charging Recommendation - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header text-center">
+                <i class="fas fa-brain"></i> AI Charging Recommendation
+            </div>
+            <div class="card-body">
+                {% if error %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="battery" class="form-label">
+                            <i class="fas fa-battery-quarter"></i> Current Battery Level (%)
+                        </label>
+                        <input type="number" class="form-control" id="battery" name="battery" placeholder="Enter your battery percentage" min="0" max="100" required autofocus>
+                        <small class="form-text text-muted d-block mt-2">What's your current battery level?</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="distance" class="form-label">
+                            <i class="fas fa-map-pin"></i> Distance to Destination (km)
+                        </label>
+                        <input type="number" class="form-control" id="distance" name="distance" placeholder="How far do you need to go?" step="0.1" min="0" required>
+                        <small class="form-text text-muted d-block mt-2">Distance you need to travel</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3">
+                        <i class="fas fa-lightbulb"></i> Get AI Recommendation
+                    </button>
+                </form>
+
+                <hr>
+
+                <a href="/user/stations" class="btn btn-secondary w-100">
+                    <i class="fas fa-arrow-left"></i> Back to Stations
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> About AI Recommendations
+            </div>
+            <div class="card-body">
+                <p class="mb-3">Our intelligent AI algorithm analyzes:</p>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-check-circle" style="color: #2ecc71;"></i> Your current battery level</li>
+                    <li class="mb-2"><i class="fas fa-check-circle" style="color: #2ecc71;"></i> Distance to your destination</li>
+                    <li class="mb-2"><i class="fas fa-check-circle" style="color: #2ecc71;"></i> Available charging stations nearby</li>
+                    <li class="mb-2"><i class="fas fa-check-circle" style="color: #2ecc71;"></i> Pricing and green scores</li>
+                </ul>
+                <p class="mt-3 text-muted"><small>to find the best charging station for your needs.</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

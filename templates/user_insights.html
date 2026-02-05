@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Your Insights - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="fas fa-chart-line"></i> Your Charging Insights</h1>
+        <p class="text-muted">Personalized analysis of your charging habits and recommendations</p>
+    </div>
+    <div class="col text-end">
+        <a href="/user/dashboard" class="btn btn-outline-secondary">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+{% if insights %}
+
+<!-- Statistics Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-box">
+            <i class="fas fa-history"></i>
+            <h3>{{ insights.statistics.total_sessions }}</h3>
+            <p>Total Charges</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-box">
+            <i class="fas fa-bolt"></i>
+            <h3>{{ insights.statistics.total_units_charged }} kWh</h3>
+            <p>Total Charged</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-box">
+            <i class="fas fa-indian-rupee-sign"></i>
+            <h3>₹{{ insights.statistics.total_spent }}</h3>
+            <p>Total Spent</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-box">
+            <i class="fas fa-leaf"></i>
+            <h3>{{ insights.eco_impact.eco_percentage|int }}%</h3>
+            <p>Eco-Friendly</p>
+        </div>
+    </div>
+</div>
+
+<!-- Spending Analysis -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-coins"></i> Spending Trends
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Last 7 Days</span>
+                        <strong>₹{{ insights.spending.spending_last_7_days.total }} ({{ insights.spending.spending_last_7_days.sessions }} sessions)</strong>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar" style="width: 33%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Last 14 Days</span>
+                        <strong>₹{{ insights.spending.spending_last_14_days.total }} ({{ insights.spending.spending_last_14_days.sessions }} sessions)</strong>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar" style="width: 66%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Last 30 Days</span>
+                        <strong>₹{{ insights.spending.spending_last_30_days.total }} ({{ insights.spending.spending_last_30_days.sessions }} sessions)</strong>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="alert alert-info mt-3 small">
+                    <i class="fas fa-lightbulb"></i> {{ insights.spending.recommendation }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-star"></i> Top Stations
+            </div>
+            <div class="card-body">
+                {% if insights.spending.top_stations %}
+                <div class="list-group">
+                    {% for station in insights.spending.top_stations[:5] %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">{{ station.name }}</h6>
+                                <small class="text-muted">{{ station.sessions }} sessions • ₹{{ station.total }} total</small>
+                            </div>
+                            <span class="badge bg-primary">₹{{ station.avg_per_session }}/session</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">No charging history yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Eco Impact Analysis -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: white;">
+                <i class="fas fa-leaf"></i> Environmental Impact
+            </div>
+            <div class="card-body">
+                <h5>{{ insights.eco_impact.eco_rating }}</h5>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Green Score</span>
+                        <strong>{{ insights.eco_impact.avg_green_score }}/10</strong>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success" style="width: {{ insights.eco_impact.avg_green_score * 10 }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col-md-6">
+                        <div style="padding: 15px; background: #f0f0f0; border-radius: 8px;">
+                            <small class="text-muted">CO₂ Emissions</small>
+                            <h5 class="text-danger mb-0">{{ insights.eco_impact.estimated_co2_emissions_kg }} kg</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div style="padding: 15px; background: #f0f0f0; border-radius: 8px;">
+                            <small class="text-muted">Trees Equivalent</small>
+                            <h5 class="text-success mb-0">{{ insights.eco_impact.trees_equivalent }} 🌳</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-success mt-3 small">
+                    <i class="fas fa-check-circle"></i> {{ insights.eco_impact.recommendation }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-lightning-bolt"></i> Charging Summary
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">Average per Session</small>
+                    <h5>₹{{ insights.statistics.avg_per_session }}</h5>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Average kWh per Session</small>
+                    <h5>{{ insights.statistics.avg_units_per_session }} kWh</h5>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Favorite Station</small>
+                    <h5>
+                        {{ insights.statistics.favorite_station }}
+                        <span class="badge bg-info">{{ insights.statistics.favorite_count }} times</span>
+                    </h5>
+                </div>
+                {% if insights.statistics.last_session %}
+                <div class="alert alert-info small">
+                    <strong>Last Charge:</strong> {{ insights.statistics.last_session.date|default('N/A') }}
+                    <br><i class="fas fa-map-marker-alt"></i> {{ insights.statistics.last_session.station }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Personalized Recommendations -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <i class="fas fa-lightbulb"></i> Personalized Recommendations
+            </div>
+            <div class="card-body">
+                {% if insights.recommendations %}
+                <div class="row">
+                    {% for rec in insights.recommendations %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 border-left" style="border-left: 4px solid #667eea;">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <span style="font-size: 1.5rem;">{{ rec.icon }}</span> {{ rec.title }}
+                                </h6>
+                                <p class="card-text small">{{ rec.message }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">
+                    <i class="fas fa-info-circle"></i> Start charging to get personalized recommendations!
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="alert alert-warning" role="alert">
+    <i class="fas fa-exclamation-triangle"></i> Unable to load insights. Please try again later.
+</div>
+{% endif %}
+
+<style>
+.stat-box {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.stat-box i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.stat-box h3 {
+    margin: 10px 0;
+}
+
+.stat-box p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.border-left {
+    border-left: 4px solid #667eea !important;
+}
+</style>
+{% endblock %}

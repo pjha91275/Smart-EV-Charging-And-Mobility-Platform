@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Queue Status - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header text-center" style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white;">
+                <i class="fas fa-exclamation-triangle"></i> You're in the Queue
+            </div>
+            <div class="card-body text-center">
+                <div style="font-size: 3rem; color: #f39c12; margin: 20px 0;">
+                    <i class="fas fa-users"></i>
+                </div>
+
+                <h3>{{ station_name }} is Currently Full</h3>
+
+                <p class="lead text-muted mt-4">
+                    All charging points at <strong>{{ station_name }}</strong> are currently in use.
+                </p>
+
+                <div class="alert alert-warning mt-4" style="border-radius: 8px;">
+                    <h5><i class="fas fa-list"></i> Your Queue Position</h5>
+                    <h2 style="color: #f39c12; font-weight: 700; margin: 10px 0;" id="queue-position">{{ position }}</h2>
+                    <p class="mb-0">You are <strong>#<span id="position-number">{{ position }}</span></strong> in the waiting queue</p>
+                </div>
+
+                <div class="alert alert-info mt-3" id="status-message">
+                    <i class="fas fa-sync-alt"></i> <small>Checking availability... (Updates every 5 seconds)</small>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h6><i class="fas fa-info-circle"></i> What Happens Next?</h6>
+                        <ul class="list-unstyled text-start mt-3">
+                            <li class="mb-2"><i class="fas fa-check-circle" style="color: #2ecc71;"></i> <strong>Automatic Detection:</strong> We're checking your position every 5 seconds</li>
+                            <li class="mb-2"><i class="fas fa-check-circle" style="color: #2ecc71;"></i> <strong>Your Turn:</strong> When it's your turn, you'll be taken to the charging form automatically</li>
+                            <li class="mb-2"><i class="fas fa-check-circle" style="color: #2ecc71;"></i> <strong>No Action Needed:</strong> Just wait, we'll notify you when a slot is available</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button class="btn btn-secondary w-100" onclick="checkStatus()">
+                        <i class="fas fa-redo"></i> Check Status Now
+                    </button>
+                </div>
+
+                <p class="text-muted mt-3 mb-0">
+                    <a href="/user/stations" style="text-decoration: none; color: #3498db;">
+                        <i class="fas fa-search"></i> Find Another Station
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const stationName = "{{ station_name }}";
+    let checkInterval = null;
+
+    function checkStatus() {
+        fetch(`/api/queue-status/${stationName}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Error:', data.error);
+                    return;
+                }
+
+                console.log('Queue Status:', data);
+
+                // Update position
+                document.getElementById('position-number').textContent = data.position;
+                const statusMsg = document.getElementById('status-message');
+
+                // Check if user can charge now
+                if (data.can_charge) {
+                    statusMsg.innerHTML = '<i class="fas fa-check-circle" style="color: #2ecc71;"></i> <strong>It\'s your turn!</strong> Redirecting to charging form...';
+                    statusMsg.style.backgroundColor = '#d4edda';
+                    statusMsg.style.color = '#155724';
+                    statusMsg.style.borderColor = '#c3e6cb';
+                    
+                    // Clear interval and redirect
+                    if (checkInterval) clearInterval(checkInterval);
+                    
+                    setTimeout(() => {
+                        window.location.href = `/user/charge/${stationName}`;
+                    }, 2000);
+                } else {
+                    // Still waiting
+                    const activeSlots = data.total_chargers - data.active_sessions;
+                    statusMsg.innerHTML = `<i class="fas fa-hourglass-end"></i> <small>
+                        <strong>${data.position} people ahead of you</strong> | 
+                        ${activeSlots}/${data.total_chargers} chargers will be free soon
+                    </small>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error checking status:', error);
+                document.getElementById('status-message').innerHTML = '<i class="fas fa-exclamation-circle" style="color: #e74c3c;"></i> <small>Error checking status</small>';
+            });
+    }
+
+    // Auto-check every 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        checkStatus(); // Check immediately
+        checkInterval = setInterval(checkStatus, 5000); // Then every 5 seconds
+    });
+
+    // Clear interval when leaving page
+    window.addEventListener('beforeunload', function() {
+        if (checkInterval) clearInterval(checkInterval);
+    });
+</script>
+{% endblock %}

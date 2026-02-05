@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Booking - {{ station.name }}{% endblock %}
+
+{% block content %}
+<style>
+    .station-card {
+        border-left: 5px solid;
+    }
+
+    .station-card.green { border-left-color: #28a745; }
+    .station-card.yellow { border-left-color: #ffc107; }
+    .station-card.orange { border-left-color: #fd7e14; }
+    .station-card.red { border-left-color: #dc3545; }
+
+    .price-breakdown {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .price-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .price-total {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .feature-badge {
+        display: inline-block;
+        padding: 8px 12px;
+        background: #e7f3ff;
+        border-radius: 20px;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        font-size: 0.9em;
+    }
+</style>
+
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="fas fa-booking"></i> Confirm Your Booking</h1>
+        <p class="text-muted">Review the details before confirming</p>
+    </div>
+    <div class="col text-end">
+        <a href="/user/map-search" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Map
+        </a>
+    </div>
+</div>
+
+{% if station %}
+<div class="row">
+    <!-- Station Details -->
+    <div class="col-lg-8">
+        <!-- Station Info Card -->
+        <div class="card station-card {% if station.marker_color %}{{ station.marker_color }}{% endif %} mb-4">
+            <div class="card-header bg-light">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h3 class="card-title mb-0">{{ station.name }}</h3>
+                        <small class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ station.location }}</small>
+                    </div>
+                    <div class="col-md-3 text-end">
+                        <div class="text-success">
+                            <i class="fas fa-check-circle"></i> Available
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Key Features -->
+                <h6 class="mb-3">Station Features</h6>
+                <div class="mb-3">
+                    <span class="feature-badge">
+                        <i class="fas fa-plug text-primary"></i> {{ station.chargers }} Chargers
+                    </span>
+                    <span class="feature-badge">
+                        <i class="fas fa-leaf text-{{ 'success' if station.green_score >= 8 else 'warning' }}"></i> 
+                        Green Score: {{ station.green_score }}/10
+                    </span>
+                    <span class="feature-badge">
+                        <i class="fas fa-rupee-sign text-info"></i> ₹{{ station.price }}/kWh
+                    </span>
+                </div>
+
+                <hr>
+
+                <!-- Booking Form -->
+                <form method="POST" id="bookingForm">
+                    <h5 class="mb-3">Charging Details</h5>
+                    
+                    <div class="mb-3">
+                        <label for="units" class="form-label">
+                            <strong>Units to Charge (kWh)</strong>
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <button type="button" class="btn btn-outline-secondary" onclick="decreaseUnits()">−</button>
+                            <input type="number" 
+                                   class="form-control text-center" 
+                                   id="units" 
+                                   name="units" 
+                                   value="10" 
+                                   min="1" 
+                                   max="100"
+                                   onchange="updatePrice()">
+                            <button type="button" class="btn btn-outline-secondary" onclick="increaseUnits()">+</button>
+                        </div>
+                        <small class="form-text text-muted">Typical EV requires 20-60 kWh for full charge</small>
+                    </div>
+
+                    <!-- Recommended Units Based on Vehicle -->
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Quick Select</strong></label>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-info" onclick="setUnits(20)">20 kWh</button>
+                            <button type="button" class="btn btn-sm btn-outline-info" onclick="setUnits(40)">40 kWh</button>
+                            <button type="button" class="btn btn-sm btn-outline-info" onclick="setUnits(60)">60 kWh</button>
+                            <button type="button" class="btn btn-sm btn-outline-info" onclick="setUnits(80)">80 kWh</button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="saveStation" name="save_station">
+                            <label class="form-check-label" for="saveStation">
+                                Save this station to favorites
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Price Breakdown -->
+                    <div class="price-breakdown">
+                        <h6 class="mb-3">Price Breakdown</h6>
+                        <div class="price-row">
+                            <span>Base Rate per kWh:</span>
+                            <span>₹{{ station.price }}</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Units (<span id="unitDisplay">10</span> kWh):</span>
+                            <span id="unitCost">₹{{ station.price * 10 }}</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Service Fee (5%):</span>
+                            <span id="serviceFee">₹{{ (station.price * 10 * 0.05)|round(2) }}</span>
+                        </div>
+                        <div class="price-row price-total">
+                            <span><strong>Total Amount</strong></span>
+                            <span id="totalPrice"><strong>₹{{ (station.price * 10 * 1.05)|round(2) }}</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Eco Impact -->
+                    <div class="alert alert-success" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-leaf"></i> Environmental Impact
+                        </h6>
+                        <p class="mb-0">
+                            By charging at this <strong>green-certified</strong> station, you'll save approximately 
+                            <strong><span id="co2Saved">{{ (10 * 0.92)|round(2) }}</span> kg of CO₂</strong> 
+                            compared to using petrol!
+                        </p>
+                    </div>
+
+                    <!-- Terms -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                            <label class="form-check-label" for="terms">
+                                I agree to the <a href="#" target="_blank">terms and conditions</a>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <button type="reset" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-redo"></i> Clear
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-check"></i> Confirm Booking
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Station Stats -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fas fa-chart-bar"></i> Station Statistics
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Green Score</span>
+                        <strong class="text-success">{{ station.green_score }}/10</strong>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: {{ (station.green_score * 10) }}%"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Chargers Available</span>
+                        <strong>{{ station.chargers }}</strong>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" style="width: {{ min(station.chargers * 10, 100) }}%"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Price Rating</span>
+                        <strong class="text-info">₹{{ station.price }}/kWh</strong>
+                    </div>
+                    <small class="text-muted">
+                        {% if station.price <= 10 %}
+                            ✓ Very Affordable
+                        {% elif station.price <= 12 %}
+                            ✓ Affordable
+                        {% elif station.price <= 15 %}
+                            ≈ Moderate
+                        {% else %}
+                            ⚠ Premium Pricing
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Tips -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fas fa-lightbulb"></i> Booking Tips
+            </div>
+            <div class="card-body small">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <strong>✓ Peak Hours:</strong> Off-peak charges (9 PM - 6 AM) are cheaper
+                    </li>
+                    <li class="mb-2">
+                        <strong>✓ Green Score:</strong> This station has a high green score - good for eco-friendly charging
+                    </li>
+                    <li class="mb-2">
+                        <strong>✓ Chargers:</strong> Multiple chargers available for quick turnaround
+                    </li>
+                    <li class="mb-2">
+                        <strong>✓ Session Duration:</strong> Average session: 30-45 minutes
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-headset"></i> Need Help?
+            </div>
+            <div class="card-body small">
+                <p class="mb-2">Contact us for any questions:</p>
+                <p class="mb-0">
+                    <strong>Email:</strong> support@evcharge.com<br>
+                    <strong>Phone:</strong> +91-1800-EV-CHARGE<br>
+                    <strong>Hours:</strong> 24/7 Support
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="alert alert-danger" role="alert">
+    <i class="fas fa-exclamation-circle"></i> Station not found. <a href="/user/map-search">Go back to map search</a>
+</div>
+{% endif %}
+
+<script>
+const stationPrice = {{ station.price }};
+const stationId = {{ station.id }};
+
+function updatePrice() {
+    const units = parseFloat(document.getElementById('units').value) || 0;
+    const unitCost = stationPrice * units;
+    const serviceFee = unitCost * 0.05;
+    const totalPrice = unitCost + serviceFee;
+    const co2Saved = units * 0.92;
+
+    document.getElementById('unitDisplay').textContent = units;
+    document.getElementById('unitCost').textContent = '₹' + unitCost.toFixed(2);
+    document.getElementById('serviceFee').textContent = '₹' + serviceFee.toFixed(2);
+    document.getElementById('totalPrice').innerHTML = '<strong>₹' + totalPrice.toFixed(2) + '</strong>';
+    document.getElementById('co2Saved').textContent = co2Saved.toFixed(2);
+}
+
+function setUnits(units) {
+    document.getElementById('units').value = units;
+    updatePrice();
+}
+
+function increaseUnits() {
+    const units = parseInt(document.getElementById('units').value) || 10;
+    document.getElementById('units').value = Math.min(units + 5, 100);
+    updatePrice();
+}
+
+function decreaseUnits() {
+    const units = parseInt(document.getElementById('units').value) || 10;
+    document.getElementById('units').value = Math.max(units - 5, 1);
+    updatePrice();
+}
+
+document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (!document.getElementById('terms').checked) {
+        alert('Please accept the terms and conditions');
+        return;
+    }
+
+    const units = document.getElementById('units').value;
+    
+    // Redirect to charging page with units parameter
+    window.location.href = `/user/charge/{{ station.name }}?units=${units}`;
+});
+
+// Initialize price on page load
+window.addEventListener('load', updatePrice);
+</script>
+{% endblock %}

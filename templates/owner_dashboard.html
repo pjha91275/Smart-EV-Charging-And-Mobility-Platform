@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Owner Dashboard - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-tachometer-alt"></i> Station Owner Dashboard</h1>
+</div>
+
+<div class="alert alert-info alert-dismissible fade show">
+    <i class="fas fa-lightbulb"></i> <strong>Welcome!</strong> Manage your charging stations and track performance.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<div class="dashboard-menu">
+    <a href="/owner/add-station" class="menu-item">
+        <i class="fas fa-plus-circle"></i>
+        <h5>Add New Station</h5>
+        <p>Register a new charging station on the platform</p>
+    </a>
+
+    <a href="/owner/stations" class="menu-item">
+        <i class="fas fa-charging-station"></i>
+        <h5>My Stations</h5>
+        <p>View and manage all your charging stations</p>
+    </a>
+
+    <a href="/owner/active-sessions" class="menu-item">
+        <i class="fas fa-plug"></i>
+        <h5>Active Sessions</h5>
+        <p>Manage and monitor live charging sessions</p>
+    </a>
+</div>
+
+<div class="row mt-large">
+    <div class="col-md-4">
+        <div class="stat-box">
+            <i class="fas fa-plug"></i>
+            <h3 id="total-stations">{{ total_stations if total_stations is defined else 0 }}</h3>
+            <p>Total Stations</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-box">
+            <i class="fas fa-users"></i>
+            <h3 id="total-users">{{ total_users if total_users is defined else 0 }}</h3>
+            <p>Users Served</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-box">
+            <i class="fas fa-indian-rupee-sign"></i>
+            <h3 id="total-revenue">₹{{ total_revenue if total_revenue is defined else 0 }}</h3>
+            <p>Revenue</p>
+        </div>
+    </div>
+</div>
+
+<div class="mt-large">
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-info-circle"></i> Owner Resources
+        </div>
+        <div class="card-body">
+            <ul class="list-unstyled">
+                <li class="mb-2"><span class="badge badge-success"><i class="fas fa-check"></i></span> <strong>Station Approval:</strong> Your stations must be approved by admin before going live</li>
+                <li class="mb-2"><span class="badge badge-success"><i class="fas fa-check"></i></span> <strong>Real-time Monitoring:</strong> Track active charging sessions and availability</li>
+                <li class="mb-2"><span class="badge badge-success"><i class="fas fa-check"></i></span> <strong>Revenue Tracking:</strong> Monitor earnings from your charging stations</li>
+                <li class="mb-2"><span class="badge badge-success"><i class="fas fa-check"></i></span> <strong>Performance Analytics:</strong> Understand user patterns and optimize pricing</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

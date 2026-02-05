@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}Google Maps - Find EV Charging Stations{% endblock %}
+
+{% block content %}
+<style>
+    #map {
+        width: 100%;
+        height: 500px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .station-list-item {
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .station-list-item:hover {
+        background-color: #f8f9fa;
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+    }
+
+    .marker-green { color: #28a745; }
+    .marker-yellow { color: #ffc107; }
+    .marker-orange { color: #fd7e14; }
+    .marker-red { color: #dc3545; }
+
+    .search-panel {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .filter-section {
+        display: none;
+    }
+
+    .filter-section.active {
+        display: block;
+    }
+</style>
+
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="fas fa-map"></i> Find Charging Stations Near You</h1>
+        <p class="text-muted">Browse available EV charging stations on the map</p>
+    </div>
+    <div class="col text-end">
+        <a href="/user/dashboard" class="btn btn-outline-secondary">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Search Options -->
+<div class="search-panel">
+    <h5 class="mb-3">Search Options</h5>
+    <form id="searchForm" method="POST">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="search_type" id="all" value="all" checked onchange="updateSearchOptions()">
+                    <label class="btn btn-outline-primary" for="all">
+                        <i class="fas fa-list"></i> All Stations
+                    </label>
+
+                    <input type="radio" class="btn-check" name="search_type" id="nearby" value="nearby" onchange="updateSearchOptions()">
+                    <label class="btn btn-outline-primary" for="nearby">
+                        <i class="fas fa-location-dot"></i> Nearby
+                    </label>
+
+                    <input type="radio" class="btn-check" name="search_type" id="filter" value="filter" onchange="updateSearchOptions()">
+                    <label class="btn btn-outline-primary" for="filter">
+                        <i class="fas fa-sliders"></i> Filter
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nearby Search Options -->
+        <div id="nearbyOptions" class="filter-section mt-3">
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label">Search Radius (km)</label>
+                    <input type="number" name="radius" class="form-control" value="10" min="1" max="50">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <input type="checkbox" id="useGeoLocation"> Use My Location
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Options -->
+        <div id="filterOptions" class="filter-section mt-3">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Min Green Score</label>
+                    <select name="green_min" class="form-select">
+                        <option value="0">Any</option>
+                        <option value="4">4+ (Standard)</option>
+                        <option value="6">6+ (Good)</option>
+                        <option value="8">8+ (Excellent)</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Max Price per kWh (₹)</label>
+                    <input type="number" name="price_max" class="form-control" value="15" min="1" max="100">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Min Chargers</label>
+                    <input type="number" name="chargers_min" class="form-control" value="0" min="0" max="20">
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Map -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-map"></i> Station Locations
+    </div>
+    <div class="card-body p-0">
+        <div id="map"></div>
+    </div>
+</div>
+
+<!-- Stations List -->
+<div class="row">
+    <div class="col-md-8">
+        <h5 class="mb-3">Found {{ stations|length }} Station(s)</h5>
+        <div id="stationsList">
+            {% if stations %}
+                {% for station in stations %}
+                <div class="station-list-item" onclick="highlightStation({{ station.id }})">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="mb-1">{{ station.name }}</h6>
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt"></i> {{ station.location }}
+                            </small>
+                            {% if station.distance is defined %}
+                            <br><small class="text-info">📍 {{ station.distance }} km away</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <div class="mb-2">
+                                <i class="fas fa-plug text-primary"></i> {{ station.chargers }}
+                            </div>
+                            <div class="mb-2">
+                                <i class="fas fa-leaf text-{{ 'success' if station.green_score >= 8 else 'warning' }}"></i> {{ station.green_score }}/10
+                            </div>
+                            <div>
+                                <strong class="text-info">₹{{ station.price }}/kWh</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <a href="/user/map-booking/{{ station.id }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-booking"></i> Book
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle"></i> No stations found. Try adjusting your search criteria.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-key"></i> Map Legend
+            </div>
+            <div class="card-body">
+                <h6 class="mb-3">Station Quality (Green Score)</h6>
+                <div class="mb-2">
+                    <span class="badge marker-green"><i class="fas fa-map-pin"></i> Green (8-10)</span> Excellent
+                </div>
+                <div class="mb-2">
+                    <span class="badge marker-yellow"><i class="fas fa-map-pin"></i> Yellow (6-7)</span> Good
+                </div>
+                <div class="mb-2">
+                    <span class="badge marker-orange"><i class="fas fa-map-pin"></i> Orange (4-5)</span> Standard
+                </div>
+                <div class="mb-3">
+                    <span class="badge marker-red"><i class="fas fa-map-pin"></i> Red (0-3)</span> Low
+                </div>
+
+                <hr>
+
+                <h6 class="mb-3">Quick Stats</h6>
+                <div class="small">
+                    <p><strong>Total Stations:</strong> {{ stations|length }}</p>
+                    {% if stations %}
+                    <p><strong>Avg Green Score:</strong> {{ (stations|map(attribute='green_score')|list|sum / stations|length)|round(1) }}/10</p>
+                    <p><strong>Avg Price:</strong> ₹{{ (stations|map(attribute='price')|list|sum / stations|length)|round(2) }}/kWh</p>
+                    {% endif %}
+                </div>
+
+                <hr>
+
+                <h6 class="mb-3">Tips</h6>
+                <ul class="small list-unstyled">
+                    <li>✓ Click on map markers to see details</li>
+                    <li>✓ Use filters to find best options</li>
+                    <li>✓ Check green score for eco-friendly</li>
+                    <li>✓ Compare prices before booking</li>
+                    <li>✓ Check available chargers</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Google Maps Script -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ map_config.api_key }}&callback=initMap" async defer></script>
+
+<script>
+let map;
+let markers = [];
+let infoWindows = [];
+
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+        zoom: {{ map_config.zoom }},
+        center: {
+            lat: {{ map_config.center.lat }},
+            lng: {{ map_config.center.lng }}
+        },
+        mapTypeControl: true,
+        fullscreenControl: true,
+        streetViewControl: true
+    });
+
+    // Add stations to map
+    const stations = {{ stations|tojson }};
+    stations.forEach((station, index) => {
+        addMarker(station);
+    });
+}
+
+function addMarker(station) {
+    const markerColors = {
+        'green': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+        'yellow': 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png',
+        'orange': 'http://maps.google.com/mapfiles/ms/icons/orange-dot.png',
+        'red': 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+    };
+
+    const marker = new google.maps.Marker({
+        position: {
+            lat: station.lat,
+            lng: station.lng
+        },
+        map: map,
+        title: station.name,
+        icon: markerColors[station.marker_color] || 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+    });
+
+    const infoContent = `
+        <div style="padding: 10px; width: 250px;">
+            <h6 style="margin-top: 0;">${station.name}</h6>
+            <small><i class="fas fa-map-marker-alt"></i> ${station.location}</small>
+            <hr style="margin: 8px 0;">
+            <div style="font-size: 12px;">
+                <div><strong>Chargers:</strong> ${station.chargers}</div>
+                <div><strong>Price:</strong> ₹${station.price}/kWh</div>
+                <div><strong>Green Score:</strong> ${station.green_score}/10</div>
+                ${station.distance ? `<div><strong>Distance:</strong> ${station.distance} km</div>` : ''}
+            </div>
+            <button onclick="window.location.href='/user/map-booking/${station.id}'" class="btn btn-sm btn-primary w-100 mt-2">
+                Book Now
+            </button>
+        </div>
+    `;
+
+    const infoWindow = new google.maps.InfoWindow({
+        content: infoContent
+    });
+
+    marker.addListener('click', () => {
+        // Close all other info windows
+        infoWindows.forEach(iw => iw.close());
+        infoWindow.open(map, marker);
+    });
+
+    markers.push(marker);
+    infoWindows.push(infoWindow);
+}
+
+function updateSearchOptions() {
+    const searchType = document.querySelector('input[name="search_type"]:checked').value;
+    
+    document.getElementById('nearbyOptions').classList.remove('active');
+    document.getElementById('filterOptions').classList.remove('active');
+    
+    if (searchType === 'nearby') {
+        document.getElementById('nearbyOptions').classList.add('active');
+    } else if (searchType === 'filter') {
+        document.getElementById('filterOptions').classList.add('active');
+    }
+}
+
+function highlightStation(stationId) {
+    // Highlight the station in the list and open its info window
+    const index = {{ stations|tojson }}|map(attribute='id')|list.indexOf(stationId);
+    if (index >= 0 && markers[index]) {
+        google.maps.event.trigger(markers[index], 'click');
+        map.panTo(markers[index].getPosition());
+    }
+}
+
+function useGeolocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            // Set hidden fields with coordinates
+            const form = document.getElementById('searchForm');
+            
+            const latInput = document.createElement('input');
+            latInput.type = 'hidden';
+            latInput.name = 'latitude';
+            latInput.value = position.coords.latitude;
+            form.appendChild(latInput);
+            
+            const lngInput = document.createElement('input');
+            lngInput.type = 'hidden';
+            lngInput.name = 'longitude';
+            lngInput.value = position.coords.longitude;
+            form.appendChild(lngInput);
+            
+            form.submit();
+        });
+    } else {
+        alert('Geolocation not supported in your browser');
+    }
+}
+
+document.getElementById('useGeoLocation')?.addEventListener('change', function() {
+    if (this.checked) {
+        useGeolocation();
+    }
+});
+
+// Initialize on load
+window.addEventListener('load', initMap);
+</script>
+
+<style>
+    .btn-group .btn-check:checked + .btn {
+        background-color: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
+</style>
+{% endblock %}

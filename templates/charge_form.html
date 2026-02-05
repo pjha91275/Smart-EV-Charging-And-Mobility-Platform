@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Charging at {{ station_name }} - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header text-center">
+                <i class="fas fa-plug"></i> Start Charging at {{ station_name }}
+            </div>
+            <div class="card-body">
+                {% if error %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="units" class="form-label">
+                            <i class="fas fa-battery-full"></i> Units to Charge (kWh)
+                        </label>
+                        <input type="number" class="form-control" id="units" name="units" placeholder="Enter amount in kWh" step="0.1" min="0.1" required autofocus>
+                        <small class="form-text text-muted d-block mt-2">
+                            Specify how many kilowatt-hours you want to charge
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="price" class="form-label">
+                            <i class="fas fa-money-bill-wave"></i> Price Per Unit
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input type="hidden" id="price-hidden" name="price" value="">
+                            <input type="number" class="form-control" id="price" step="0.01" disabled>
+                            <span class="input-group-text">/kWh</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <small><i class="fas fa-info-circle"></i> <strong>Estimated Cost:</strong> <span id="estimated-cost">₹0</span></small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3">
+                        <i class="fas fa-credit-card"></i> Pay & Start Charging
+                    </button>
+                </form>
+
+                <hr>
+
+                <a href="/user/stations" class="btn btn-secondary w-100">
+                    <i class="fas fa-arrow-left"></i> Back to Stations
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-question-circle"></i> How It Works
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li>Enter the amount of energy you need (in kWh)</li>
+                    <li>Review the estimated cost</li>
+                    <li>Click "Pay & Start Charging"</li>
+                    <li>Complete the secure blockchain payment</li>
+                    <li>Charging begins immediately</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get price from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const price = urlParams.get('price');
+        
+        if (price) {
+            document.getElementById('price').value = price;
+            document.getElementById('price-hidden').value = price;
+        }
+        
+        // Update estimated cost when units change
+        document.getElementById('units').addEventListener('input', function() {
+            const units = parseFloat(this.value) || 0;
+            const pricePerUnit = parseFloat(price) || 0;
+            const total = (units * pricePerUnit).toFixed(2);
+            document.getElementById('estimated-cost').textContent = '₹' + total;
+        });
+    });
+</script>
+{% endblock %}

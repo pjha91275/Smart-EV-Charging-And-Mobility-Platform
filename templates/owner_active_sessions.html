@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Active Charging Sessions - Smart EV Charging{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-plug"></i> Active Charging Sessions</h1>
+    <a href="/owner/dashboard" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-lightbulb"></i> Monitor and manage all active charging sessions at your stations.
+</div>
+
+{% if sessions %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th><i class="fas fa-charging-station"></i> Station</th>
+                <th><i class="fas fa-user"></i> User Name</th>
+                <th><i class="fas fa-envelope"></i> Email</th>
+                <th><i class="fas fa-battery-full"></i> Units (kWh)</th>
+                <th><i class="fas fa-money-bill-wave"></i> Amount (₹)</th>
+                <th><i class="fas fa-clock"></i> Started At</th>
+                <th><i class="fas fa-cogs"></i> Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in sessions %}
+            <tr>
+                <td><strong>{{ s[2] }}</strong></td>
+                <td>{{ s[7] }}</td>
+                <td><small>{{ s[8] }}</small></td>
+                <td>{{ s[3] }}</td>
+                <td>₹{{ s[4] }}</td>
+                <td>
+                    <small>{{ s[6][:19] }}</small>
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-success complete-btn" data-session-id="{{ s[0] }}">
+                            <i class="fas fa-check"></i> Complete
+                        </button>
+                        <button class="btn btn-danger cancel-btn" data-session-id="{{ s[0] }}">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-large">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="stat-box">
+                <i class="fas fa-plug"></i>
+                <h3>{{ sessions|length }}</h3>
+                <p>Active Sessions</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stat-box">
+                <i class="fas fa-money-bill-wave"></i>
+                {% set total_revenue = 0 %}
+                {% for s in sessions %}
+                    {% set total_revenue = total_revenue + s[4] %}
+                {% endfor %}
+                <h3>₹{{ total_revenue }}</h3>
+                <p>Current Revenue</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-large">
+    <div class="card-header">
+        <i class="fas fa-info-circle"></i> Session Management
+    </div>
+    <div class="card-body">
+        <ul class="list-unstyled">
+            <li class="mb-2"><i class="fas fa-circle" style="color: #2ecc71; font-size: 0.6rem;"></i> <strong>Complete:</strong> Mark charging as finished. User can then view in history.</li>
+            <li class="mb-2"><i class="fas fa-circle" style="color: #e74c3c; font-size: 0.6rem;"></i> <strong>Cancel:</strong> Stop a session immediately (e.g., equipment failure)</li>
+            <li class="mb-2"><i class="fas fa-circle" style="color: #3498db; font-size: 0.6rem;"></i> <strong>Auto-Advance Queue:</strong> When you complete a session, the next waiting user is automatically notified</li>
+        </ul>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-success">
+    <i class="fas fa-check-circle"></i> <strong>All clear!</strong> No active charging sessions at the moment.
+</div>
+
+<a href="/owner/stations" class="btn btn-primary">
+    <i class="fas fa-charging-station"></i> View My Stations
+</a>
+{% endif %}
+
+<script>
+    function completeCharging(sessionId) {
+        if (confirm('Mark this charging session as completed?')) {
+            fetch(`/owner/complete-charging/${sessionId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Charging session completed! Next user in queue has been notified.');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error completing charging');
+            });
+        }
+    }
+
+    function cancelCharging(sessionId) {
+        if (confirm('Cancel this charging session? This cannot be undone.')) {
+            fetch(`/owner/cancel-charging/${sessionId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Charging session cancelled.');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error cancelling charging');
+            });
+        }
+    }
+</script>
+    <script>
+        // Attach event listeners for complete/cancel buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.complete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const sessionId = this.dataset.sessionId;
+                    if (confirm('Mark this charging session as completed?')) {
+                        fetch(`/owner/complete-charging/${sessionId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                alert('Charging session completed! Next user in queue has been notified.');
+                                location.reload();
+                            } else {
+                                alert('Error: ' + (data.error || data.message || 'Unknown'));
+                            }
+                        })
+                        .catch(err => { console.error(err); alert('Error completing charging'); });
+                    }
+                });
+            });
+
+            document.querySelectorAll('.cancel-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const sessionId = this.dataset.sessionId;
+                    if (confirm('Cancel this charging session? This cannot be undone.')) {
+                        fetch(`/owner/cancel-charging/${sessionId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                alert('Charging session cancelled.');
+                                location.reload();
+                            } else {
+                                alert('Error: ' + (data.error || data.message || 'Unknown'));
+                            }
+                        })
+                        .catch(err => { console.error(err); alert('Error cancelling charging'); });
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
